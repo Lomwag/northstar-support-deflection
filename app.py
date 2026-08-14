@@ -1,159 +1,262 @@
 import os
 import sqlite3
-import re
-from flask import Flask, request, jsonify, render_template
+import uuid
+from datetime import datetime
 
-# Import our custom chatbot logic function from chatbot.py
-from chatbot import get_response, detect_intent
+from flask import Flask, jsonify, render_template, request, session
 
-# Initialize the Flask application
-# template_folder tells Flask where to look for HTML files (index.html)
-app = Flask(__name__, template_folder="templates")
-app.secret_key = "northstar_support_deflection_mvp_secret"
+from chatbot import get_response
 
-# Locate the SQLite database path
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "database.db")
 
 
+app = Flask(__name__)
+
+# Never hard-code production secrets.
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "northstar-development-secret"
+)
+
+
+# ---------------------------------------------------------
+# DATABASE
+# ---------------------------------------------------------
+
+def get_db():
+
+    conn = sqlite3.connect(DB_PATH)
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+
+# ---------------------------------------------------------
+# HOME
+# ---------------------------------------------------------
+
 @app.route("/")
-def index():
-    """
-    GET Route: Renders and serves the main chatbot UI page.
-    When you visit http://127.0.0.1:5000/ in a browser, this function runs.
-    """
+def home():
+
+    if "conversation_id" not in session:
+
+        session["conversation_id"] = str(uuid.uuid4())
+
     return render_template("index.html")
 
 
-@app.route("/chat", methods=["POST"])
+# ---------------------------------------------------------
+# CHAT API
+# ---------------------------------------------------------
+
 @app.route("/api/chat", methods=["POST"])
 def chat():
-    """
-    POST Route: Receives the user's typed message, queries the database chatbot,
-    and returns a JSON response containing the chatbot's text.
-    Supports both JSON payloads and standard Form submissions.
-    """
+
+    data = request.get_json(silent=True) or {}
+
+    user_message = data.get("message")
+
+    if not isinstance(user_message, str):
+
+        return jsonify({
+            "success": False,
+            "error": "Message must be text."
+        }), 400
+
+    user_message = user_message.strip()
+
+    if not user_message:
+
+        return jsonify({
+            "success": False,
+            "error": "Please enter a message."
+        }), 400
+
+    if len(user_message) > 1000:
+
+        return jsonify({
+            "success": False,
+            "error": "Message is too long."
+        }), 400
+
+    conversation_id = session.get("conversation_id")
+
+    if not conversation_id:
+
+        conversation_id = str(uuid.uuid4())
+
+        session["conversation_id"] = conversation_id
+
+    # Retrieve context
+    context = {}
+
     try:
-        user_message = ""
-        
-        # 1. Parse the request message from JSON or standard HTML Form data
-        if request.is_json:
-            data = request.get_json()
-            if data and "message" in data:
-                user_message = data["message"]
-        else:
-            user_message = request.form.get("message", "")
-            
-        # Validate that we have a message to process
-        if not user_message and user_message != "":
-            return jsonify({
-                "status": "error",
-                "response": "Please enter a message to chat."
-            }), 400
-            
-        # 2. Query our chatbot core logic to retrieve the bot response text
-        bot_reply = get_response(user_message)
-        
-        # 3. Detect intent to provide metadata flags for the frontend (like ticket forms)
-        intent = detect_intent(user_message)
-        
-        show_ticket_form = False
-        suggest_ticket = False
-        prefilled_order_id = ""
-        
-        if intent == "support":
-            show_ticket_form = True
-        elif "couldn't find order" in bot_reply:
-            suggest_ticket = True
-            # Attempt to extract order ID from user query to prefill form
-            match = re.search(r'order\s*(?:#\s*)?([a-zA-Z0-9]+)', user_message.lower())
-            if match:
-                prefilled_order_id = match.group(1)
-        
-        # 4. Return response payload back to the browser Javascript
+
+        with get_db() as conn:
+
+            rows = conn.execute(
+                """
+                SELECT role, message
+                FROM messages
+                WHERE conversation_id = ?
+                ORDER BY id DESC
+                LIMIT 10
+                """,
+                (conversation_id,)
+            ).fetchall()
+
+            for row in rows:
+
+                if row["role"] == "assistant":
+                    continue
+
+    except sqlite3.Error:
+
+        pass
+
+    response = get_response(
+        user_message,
+        context
+    )
+
+    # Save conversation
+    try:
+
+        with get_db() as conn:
+
+            conn.execute(
+                """
+                INSERT INTO conversations
+                (conversation_id, created_at)
+                VALUES (?, ?)
+                ON CONFLICT(conversation_id)
+                DO NOTHING
+                """,
+                (
+                    conversation_id,
+                    datetime.utcnow().isoformat()
+                )
+            )
+
+            conn.execute(
+                """
+                INSERT INTO messages
+                (conversation_id, role, message, intent, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    conversation_id,
+                    "user",
+                    user_message,
+                    response.get("intent"),
+                    datetime.utcnow().isoformat()
+                )
+            )
+
+            conn.execute(
+                """
+                INSERT INTO messages
+                (conversation_id, role, message, intent, created_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    conversation_id,
+                    "assistant",
+                    response["message"],
+                    response.get("intent"),
+                    datetime.utcnow().isoformat()
+                )
+            )
+
+            conn.commit()
+
+    except sqlite3.Error:
+
+        # The chatbot can still answer even if analytics persistence fails.
+        pass
+
+    return jsonify({
+        "success": True,
+        "conversation_id": conversation_id,
+        **response
+    })
+
+
+# ---------------------------------------------------------
+# FEEDBACK
+# ---------------------------------------------------------
+
+@app.route("/api/feedback", methods=["POST"])
+def feedback():
+
+    data = request.get_json(silent=True) or {}
+
+    rating = data.get("rating")
+
+    if rating not in ["positive", "negative"]:
+
         return jsonify({
-            "status": "success",
-            "response": bot_reply,
-            "intent": intent,
-            "show_ticket_form": show_ticket_form,
-            "suggest_ticket": suggest_ticket,
-            "prefilled_order_id": prefilled_order_id
-        })
-        
-    except Exception as e:
-        # Wrap everything in try/except to prevent 500 error pages
-        # Returns a friendly JSON error message instead of crashing
+            "success": False,
+            "error": "Invalid feedback."
+        }), 400
+
+    conversation_id = session.get("conversation_id")
+
+    try:
+
+        with get_db() as conn:
+
+            conn.execute(
+                """
+                INSERT INTO feedback
+                (conversation_id, rating, created_at)
+                VALUES (?, ?, ?)
+                """,
+                (
+                    conversation_id,
+                    rating,
+                    datetime.utcnow().isoformat()
+                )
+            )
+
+            conn.commit()
+
+    except sqlite3.Error:
+
         return jsonify({
-            "status": "error",
-            "response": "I encountered an error processing your query. Please try again."
+            "success": False,
+            "error": "Unable to save feedback."
         }), 500
 
+    return jsonify({
+        "success": True
+    })
 
-@app.route("/api/ticket", methods=["POST"])
-def create_ticket():
-    """
-    POST Route: Creates a support ticket in the SQLite database.
-    Expects customer_name, customer_email, issue_description, and optional order_id.
-    """
-    try:
-        # Check input source (JSON vs Form Data)
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form
-            
-        if not data:
-            return jsonify({
-                "status": "error",
-                "response": "Missing form data."
-            }), 400
-            
-        customer_name = data.get("customer_name", "").strip()
-        customer_email = data.get("customer_email", "").strip()
-        issue_description = data.get("issue_description", "").strip()
-        order_id = data.get("order_id", "").strip()
-        
-        # Validate inputs
-        if not customer_name or not customer_email or not issue_description:
-            return jsonify({
-                "status": "error",
-                "response": "Please fill out all required fields."
-            }), 400
-            
-        if "@" not in customer_email or "." not in customer_email:
-            return jsonify({
-                "status": "error",
-                "response": "Please enter a valid email address."
-            }), 400
-            
-        # Save to SQLite tickets table
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO tickets (order_id, customer_name, customer_email, issue_description)
-            VALUES (?, ?, ?, ?);
-        """, (order_id if order_id else None, customer_name, customer_email, issue_description))
-        ticket_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
-        
-        return jsonify({
-            "status": "success",
-            "ticket_id": ticket_id,
-            "message": f"Successfully created Support Ticket #{ticket_id}."
-        })
-        
-    except Exception as e:
-        return jsonify({
-            "status": "error",
-            "response": "Could not create support ticket. Please try again later."
-        }), 500
 
+# ---------------------------------------------------------
+# HEALTH CHECK
+# ---------------------------------------------------------
+
+@app.route("/api/health")
+def health():
+
+    return jsonify({
+        "status": "ok",
+        "service": "Northstar Support Deflection"
+    })
+
+
+# ---------------------------------------------------------
+# RUN
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("Starting Northstar Web Chatbot on http://127.0.0.1:5000")
-    print("=" * 60)
-    # Runs the server locally in debug mode
-    # debug=True automatically reloads the server when code files change
-    app.run(host="127.0.0.1", port=5000, debug=True)
+
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 5000)),
+        debug=os.environ.get("FLASK_DEBUG") == "1"
+    )
