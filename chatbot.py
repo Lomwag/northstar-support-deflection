@@ -231,7 +231,7 @@ def get_response(user_text, extracted_id=None, extracted_product=None):
             
     except Exception:
         # Catch-all exception block to ensure the application never crashes
-        return "Sorry, I encountered an unexpected error. Could you try asking that in a different way?"
+        return "I'm not completely sure which order you're referring to. Could you provide your order number?"
 
 
 if __name__ == "__main__":
