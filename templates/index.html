@@ -1,777 +1,1194 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Northstar Support Deflection Chatbot MVP. Instantly track your order status, check catalog stock levels, and escalate issues.">
-    <title>Northstar Support Assistant</title>
-    
-    <!-- Google Fonts: Inter for general text, Outfit for headings -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Northstar — Customer Support</title>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
 
     <style>
-        /* ==========================================================================
-           DESIGN SYSTEM & VARIABLES
-           ========================================================================== */
-        :root {
-            /* Palette colors */
-            --bg-dark: #090d16;
-            --bg-card: rgba(17, 24, 39, 0.7);
-            --border-glow: rgba(99, 102, 241, 0.2);
-            --border-light: rgba(255, 255, 255, 0.08);
-            
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            
-            /* Branding colors */
-            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
-            --accent-glow: rgba(99, 102, 241, 0.5);
-            --success-color: #10b981;
-            
-            /* Message Bubbles */
-            --bubble-user: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-            --bubble-bot: rgba(31, 41, 55, 0.85);
-            
-            /* Transitions */
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
 
-        /* Reset and Base Styles */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
+        :root {
+
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #687386;
+            --primary: #5b5cf0;
+            --primary-dark: #4748d8;
+            --border: #e8ebf2;
+            --success: #20a464;
+            --shadow: 0 20px 60px rgba(28, 35, 65, .12);
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
-            height: 100vh;
+
+            font-family: "Inter", sans-serif;
+
+            background:
+                radial-gradient(
+                    circle at top left,
+                    #e9eaff,
+                    transparent 35%
+                ),
+                var(--bg);
+
+            min-height: 100vh;
+
+            color: var(--text);
+
             display: flex;
+
             justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            
-            /* Background glow blobs using gradients */
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 45%);
+
+            padding: 30px 15px;
         }
 
-        /* ==========================================================================
-           MAIN CHAT WIDGET LAYOUT (GLASSMORPHISM)
-           ========================================================================== */
-        .chat-container {
-            width: 90%;
-            max-width: 500px;
-            height: 85vh;
-            max-height: 750px;
-            background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-light);
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4),
-                        0 0 40px var(--border-glow);
+        .app {
+
+            width: 100%;
+
+            max-width: 1050px;
+
+            height: 90vh;
+
+            min-height: 650px;
+
+            background: var(--card);
+
+            border-radius: 28px;
+
+            box-shadow: var(--shadow);
+
+            display: grid;
+
+            grid-template-columns: 310px 1fr;
+
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+
+            background:
+                linear-gradient(
+                    160deg,
+                    #5b5cf0,
+                    #7a5cf5
+                );
+
+            color: white;
+
+            padding: 32px 25px;
+
             display: flex;
+
             flex-direction: column;
-            overflow: hidden;
-            position: relative;
-            animation: container-entrance 0.8s ease-out;
         }
 
-        /* Container Entrance Keyframe */
-        @keyframes container-entrance {
+        .brand {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 40px;
+        }
+
+        .logo {
+
+            width: 44px;
+
+            height: 44px;
+
+            border-radius: 14px;
+
+            background: rgba(255,255,255,.18);
+
+            display: grid;
+
+            place-items: center;
+
+            font-size: 22px;
+        }
+
+        .brand h1 {
+
+            font-size: 21px;
+
+            font-weight: 800;
+        }
+
+        .brand span {
+
+            display: block;
+
+            font-size: 11px;
+
+            opacity: .75;
+
+            margin-top: 2px;
+        }
+
+        .sidebar-title {
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1.5px;
+
+            opacity: .65;
+
+            margin-bottom: 14px;
+        }
+
+        .quick-action {
+
+            border: 1px solid rgba(255,255,255,.15);
+
+            background: rgba(255,255,255,.1);
+
+            color: white;
+
+            padding: 15px;
+
+            border-radius: 15px;
+
+            margin-bottom: 10px;
+
+            text-align: left;
+
+            cursor: pointer;
+
+            transition: .2s;
+        }
+
+        .quick-action:hover {
+
+            background: rgba(255,255,255,.2);
+
+            transform: translateY(-2px);
+        }
+
+        .quick-action strong {
+
+            display: block;
+
+            font-size: 13px;
+
+            margin-bottom: 4px;
+        }
+
+        .quick-action small {
+
+            opacity: .7;
+
+            font-size: 11px;
+        }
+
+        .sidebar-footer {
+
+            margin-top: auto;
+
+            font-size: 11px;
+
+            opacity: .6;
+
+            line-height: 1.6;
+        }
+
+        /* CHAT */
+
+        .chat {
+
+            display: flex;
+
+            flex-direction: column;
+
+            min-width: 0;
+        }
+
+        .chat-header {
+
+            height: 82px;
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 28px;
+        }
+
+        .agent {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+        }
+
+        .avatar {
+
+            width: 43px;
+
+            height: 43px;
+
+            background: #eeeefe;
+
+            color: var(--primary);
+
+            border-radius: 14px;
+
+            display: grid;
+
+            place-items: center;
+
+            font-size: 20px;
+        }
+
+        .agent strong {
+
+            font-size: 14px;
+        }
+
+        .agent p {
+
+            font-size: 11px;
+
+            color: var(--success);
+
+            margin-top: 3px;
+        }
+
+        .status {
+
+            width: 8px;
+
+            height: 8px;
+
+            display: inline-block;
+
+            background: var(--success);
+
+            border-radius: 50%;
+
+            margin-right: 5px;
+        }
+
+        .messages {
+
+            flex: 1;
+
+            overflow-y: auto;
+
+            padding: 30px;
+
+            scroll-behavior: smooth;
+        }
+
+        .welcome {
+
+            max-width: 600px;
+
+            margin: 20px auto 30px;
+
+            text-align: center;
+        }
+
+        .welcome-icon {
+
+            width: 65px;
+
+            height: 65px;
+
+            border-radius: 22px;
+
+            background: #eeeefe;
+
+            color: var(--primary);
+
+            display: grid;
+
+            place-items: center;
+
+            font-size: 30px;
+
+            margin: 0 auto 18px;
+        }
+
+        .welcome h2 {
+
+            font-size: 25px;
+
+            margin-bottom: 9px;
+        }
+
+        .welcome p {
+
+            color: var(--muted);
+
+            font-size: 13px;
+
+            line-height: 1.6;
+        }
+
+        .message {
+
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 18px;
+
+            animation: appear .25s ease;
+        }
+
+        @keyframes appear {
+
             from {
                 opacity: 0;
-                transform: translateY(30px) scale(0.97);
+                transform: translateY(8px);
             }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
 
-        /* ==========================================================================
-           HEADER COMPONENT
-           ========================================================================== */
-        .chat-header {
-            padding: 20px 24px;
-            background: rgba(17, 24, 39, 0.4);
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .avatar-container {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-        }
-
-        .avatar-container svg {
-            width: 24px;
-            height: 24px;
-            fill: #ffffff;
-        }
-
-        /* Online Status Indicator Dot */
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            background-color: var(--success-color);
-            border: 2px solid #0e131f;
-            border-radius: 50%;
-            position: absolute;
-            bottom: 1px;
-            right: 1px;
-            box-shadow: 0 0 8px var(--success-color);
-            animation: pulse-glow 2s infinite;
-        }
-
-        @keyframes pulse-glow {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-        }
-
-        .header-info h1 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 2px;
-        }
-
-        .header-info p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* ==========================================================================
-           CHAT WINDOW / DIALOG AREA
-           ========================================================================== */
-        .chat-log {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
-        }
-
-        .chat-log::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-log::-webkit-scrollbar-thumb {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        /* Message Bubble Styles */
-        .message {
-            max-width: 80%;
-            padding: 14px 18px;
-            border-radius: 18px;
-            font-size: 0.92rem;
-            line-height: 1.5;
-            animation: message-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transform: translateY(12px);
-        }
-
-        @keyframes message-slide-in {
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* Bot Message Details */
-        .message.bot {
-            align-self: flex-start;
-            background: var(--bubble-bot);
-            border: 1px solid var(--border-light);
-            border-top-left-radius: 4px;
-            color: var(--text-primary);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        /* User Message Details */
         .message.user {
-            align-self: flex-end;
-            background: var(--bubble-user);
-            border-top-right-radius: 4px;
-            color: #ffffff;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+
+            justify-content: flex-end;
         }
 
-        /* ==========================================================================
-           TYPING INDICATOR
-           ========================================================================== */
-        .typing-indicator {
-            display: none;
-            align-self: flex-start;
-            background: var(--bubble-bot);
-            border: 1px solid var(--border-light);
-            border-radius: 18px;
-            border-top-left-radius: 4px;
-            padding: 14px 20px;
-            gap: 6px;
-            align-items: center;
+        .bubble {
+
+            max-width: 75%;
+
+            padding: 13px 16px;
+
+            border-radius: 17px;
+
+            font-size: 13px;
+
+            line-height: 1.6;
         }
 
-        .typing-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--text-secondary);
-            border-radius: 50%;
-            animation: dot-bounce 1.4s infinite ease-in-out both;
+        .assistant .bubble {
+
+            background: #f2f4f8;
+
+            border-bottom-left-radius: 5px;
         }
 
-        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
-        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        .user .bubble {
 
-        @keyframes dot-bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
+            background: var(--primary);
+
+            color: white;
+
+            border-bottom-right-radius: 5px;
         }
 
-        /* ==========================================================================
-           INLINE SUPPORT TICKET FORM
-           ========================================================================== */
-        .ticket-form-card {
-            align-self: flex-start;
-            width: 85%;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-light);
-            border-radius: 16px;
-            padding: 18px;
-            margin-top: 6px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            animation: message-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        .order-card,
+        .product-card {
+
+            margin-top: 13px;
+
+            background: white;
+
+            border: 1px solid var(--border);
+
+            border-radius: 17px;
+
+            padding: 16px;
+
+            box-shadow: 0 8px 25px rgba(0,0,0,.04);
         }
 
-        .ticket-form-card h3 {
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .card-title {
+
+            font-weight: 700;
+
+            margin-bottom: 8px;
         }
 
-        .ticket-form-card h3 svg {
-            width: 16px;
-            height: 16px;
-            fill: #6366f1;
-        }
+        .badge {
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+            display: inline-block;
 
-        .form-group label {
-            font-size: 0.72rem;
-            font-weight: 500;
-            color: var(--text-secondary);
+            background: #e8f8ef;
+
+            color: var(--success);
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            font-size: 10px;
+
+            font-weight: 700;
+
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .form-group input, .form-group textarea {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 10px 12px;
-            font-family: inherit;
-            font-size: 0.85rem;
-            color: var(--text-primary);
-            outline: none;
-            transition: var(--transition-smooth);
+        .card-row {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            padding: 7px 0;
+
+            font-size: 11px;
+
+            color: var(--muted);
         }
 
-        .form-group input:focus, .form-group textarea:focus {
-            border-color: rgba(99, 102, 241, 0.5);
-            background: rgba(255, 255, 255, 0.07);
+        .card-row strong {
+
+            color: var(--text);
         }
 
-        .ticket-submit-btn {
-            background: var(--primary-gradient);
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
-            transition: var(--transition-smooth);
-        }
+        .feedback {
 
-        .ticket-submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
-        }
-
-        .ticket-submit-btn:disabled {
-            background: var(--text-muted);
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
-        /* Inline Ticket Suggestion Button */
-        .escalate-btn {
-            background: rgba(99, 102, 241, 0.12);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            color: #ffffff;
-            border-radius: 8px;
-            padding: 8px 14px;
-            font-family: inherit;
-            font-size: 0.78rem;
-            font-weight: 500;
-            cursor: pointer;
             margin-top: 10px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: var(--transition-smooth);
+
+            font-size: 10px;
+
+            color: var(--muted);
         }
 
-        .escalate-btn:hover {
-            background: rgba(99, 102, 241, 0.25);
-            border-color: rgba(99, 102, 241, 0.5);
-            transform: translateY(-1px);
+        .feedback button {
+
+            border: 0;
+
+            background: transparent;
+
+            cursor: pointer;
+
+            font-size: 15px;
+
+            margin-left: 5px;
         }
 
-        .escalate-btn svg {
-            width: 14px;
-            height: 14px;
-            fill: #ffffff;
+        .typing {
+
+            display: none;
+
+            padding: 12px 16px;
+
+            background: #f2f4f8;
+
+            width: fit-content;
+
+            border-radius: 17px;
+
+            margin-bottom: 15px;
         }
 
-        /* ==========================================================================
-           QUICK SUGGESTION CHIPS
-           ========================================================================== */
-        .suggestion-bar {
-            padding: 10px 20px;
+        .typing span {
+
+            width: 6px;
+
+            height: 6px;
+
+            display: inline-block;
+
+            background: #9ca3af;
+
+            border-radius: 50%;
+
+            margin: 0 2px;
+
+            animation: bounce 1s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: .15s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: .3s;
+        }
+
+        @keyframes bounce {
+
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* INPUT */
+
+        .composer {
+
+            padding: 18px 25px 23px;
+
+            border-top: 1px solid var(--border);
+        }
+
+        .suggestions {
+
             display: flex;
-            gap: 8px;
+
+            gap: 7px;
+
             overflow-x: auto;
-            background: rgba(17, 24, 39, 0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            scrollbar-width: none;
+
+            margin-bottom: 10px;
         }
 
-        .suggestion-bar::-webkit-scrollbar {
-            display: none; /* Hide scrollbar for layout cleanliness */
-        }
+        .suggestion {
 
-        .chip {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-light);
-            border-radius: 50px;
-            padding: 8px 16px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            cursor: pointer;
             white-space: nowrap;
-            transition: var(--transition-smooth);
-        }
 
-        .chip:hover {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: rgba(99, 102, 241, 0.4);
-            color: #ffffff;
-            transform: translateY(-2px);
-        }
+            border: 1px solid var(--border);
 
-        /* ==========================================================================
-           INPUT CONTROLS
-           ========================================================================== */
-        .chat-input-area {
-            padding: 16px 20px;
-            background: rgba(17, 24, 39, 0.6);
-            border-top: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+            background: white;
 
-        .input-wrapper {
-            position: relative;
-            flex: 1;
-        }
+            color: var(--muted);
 
-        /* Custom Input Styling */
-        .chat-input {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-light);
-            border-radius: 14px;
-            padding: 14px 18px;
-            font-family: inherit;
-            font-size: 0.92rem;
-            color: var(--text-primary);
-            outline: none;
-            transition: var(--transition-smooth);
-        }
+            border-radius: 20px;
 
-        .chat-input:focus {
-            border-color: rgba(99, 102, 241, 0.6);
-            background: rgba(255, 255, 255, 0.07);
-            box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
-        }
+            padding: 7px 11px;
 
-        .chat-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        /* Send Icon Button */
-        .send-btn {
-            background: var(--primary-gradient);
-            border: none;
-            border-radius: 14px;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-            transition: var(--transition-smooth);
+
+            font-size: 10px;
         }
 
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+        .suggestion:hover {
+
+            border-color: var(--primary);
+
+            color: var(--primary);
         }
 
-        .send-btn:active {
-            transform: scale(0.95);
+        .input-row {
+
+            display: flex;
+
+            gap: 10px;
+
+            background: #f6f7fa;
+
+            border: 1px solid var(--border);
+
+            padding: 7px;
+
+            border-radius: 17px;
         }
 
-        .send-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: #ffffff;
-            transition: transform 0.3s ease;
+        input {
+
+            flex: 1;
+
+            border: none;
+
+            background: transparent;
+
+            outline: none;
+
+            padding: 10px;
+
+            font-family: inherit;
+
+            font-size: 13px;
         }
 
-        .send-btn:hover svg {
-            transform: translate(2px, -2px) rotate(-15deg);
+        .send {
+
+            width: 43px;
+
+            height: 43px;
+
+            border: none;
+
+            border-radius: 13px;
+
+            background: var(--primary);
+
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 18px;
+
+            transition: .2s;
         }
+
+        .send:hover {
+
+            background: var(--primary-dark);
+
+            transform: scale(1.04);
+        }
+
+        .composer-note {
+
+            text-align: center;
+
+            color: #a0a6b2;
+
+            font-size: 9px;
+
+            margin-top: 8px;
+        }
+
+        @media (max-width: 760px) {
+
+            body {
+                padding: 0;
+            }
+
+            .app {
+
+                height: 100vh;
+
+                min-height: 0;
+
+                border-radius: 0;
+
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .messages {
+                padding: 20px 15px;
+            }
+
+            .bubble {
+                max-width: 88%;
+            }
+
+        }
+
     </style>
+
 </head>
+
+
 <body>
 
-    <main class="chat-container">
-        <!-- Header Section -->
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="logo">✦</div>
+
+            <div>
+                <h1>Northstar</h1>
+                <span>Support Assistant</span>
+            </div>
+
+        </div>
+
+        <div class="sidebar-title">
+            Quick help
+        </div>
+
+        <button
+            class="quick-action"
+            onclick="quickMessage('Where is my order #1001?')"
+        >
+            <strong>📦 Track an order</strong>
+            <small>Get delivery status and ETA</small>
+        </button>
+
+        <button
+            class="quick-action"
+            onclick="quickMessage('Do you have blue sneakers in stock?')"
+        >
+            <strong>👟 Check availability</strong>
+            <small>Find products and sizes</small>
+        </button>
+
+        <button
+            class="quick-action"
+            onclick="quickMessage('I want to return my order')"
+        >
+            <strong>↩️ Start a return</strong>
+            <small>Get help returning an item</small>
+        </button>
+
+        <button
+            class="quick-action"
+            onclick="quickMessage('When will I get my refund?')"
+        >
+            <strong>💰 Refund help</strong>
+            <small>Understand the refund process</small>
+        </button>
+
+        <div class="sidebar-footer">
+
+            Northstar is designed to solve common
+            customer questions instantly.
+
+            <br><br>
+
+            Most questions can be resolved
+            without waiting for an agent.
+
+        </div>
+
+    </aside>
+
+
+    <!-- CHAT -->
+
+    <main class="chat">
+
         <header class="chat-header">
-            <div class="avatar-container">
-                <!-- Robotic support bot SVG icon -->
-                <svg viewBox="0 0 24 24">
-                    <path d="M19 8h-1.07C17.43 5.09 14.97 3 12 3S6.57 5.09 6.07 8H5c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2h1.07c.5 2.91 2.96 5 6.03 5s5.53-2.09 6.03-5H19c1.1 0 2-.9 2-2v-4c0-1.1-.9-2-2-2zM9 9c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm6 5H9v-2h6v2zm-2-3c0 .55-.45 1-1 1s-1-.45-1-1 .45-1 1-1 1 .45 1 1zm3 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
-                </svg>
-                <div class="status-dot" id="status-indicator"></div>
+
+            <div class="agent">
+
+                <div class="avatar">✦</div>
+
+                <div>
+
+                    <strong>Northstar Assistant</strong>
+
+                    <p>
+                        <span class="status"></span>
+                        Online · Ready to help
+                    </p>
+
+                </div>
+
             </div>
-            <div class="header-info">
-                <h1>Northstar Assistant</h1>
-                <p>Online • MVP Support Deflection</p>
-            </div>
+
         </header>
 
-        <!-- Message Window Logs -->
-        <section class="chat-log" id="chat-window">
-            <div class="message bot">
-                Hello! I am the Northstar Assistant. I can help check your order status or item stock levels. Try typing a query or selecting one of the suggestions below!
+
+        <section
+            class="messages"
+            id="messages"
+        >
+
+            <div
+                class="welcome"
+                id="welcome"
+            >
+
+                <div class="welcome-icon">
+                    ✦
+                </div>
+
+                <h2>
+                    How can I help?
+                </h2>
+
+                <p>
+                    I can instantly help you track orders,
+                    check products, handle returns and
+                    answer refund questions.
+                </p>
+
             </div>
-            
-            <!-- Live typing indicator -->
-            <div class="typing-indicator" id="bot-typing">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
+
+
+            <div
+                class="typing"
+                id="typing"
+            >
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
+
         </section>
 
-        <!-- Suggestion Chips Bar -->
-        <section class="suggestion-bar">
-            <button class="chip" onclick="applySuggestion('Where is my order 1001?')">Track Order 1001</button>
-            <button class="chip" onclick="applySuggestion('Is the blue sneakers in stock?')">Check Stock: Blue Sneakers</button>
-            <button class="chip" onclick="applySuggestion('I need to speak to support')">Talk to Human</button>
-        </section>
 
-        <!-- Input Section -->
-        <!-- Typing Enter key inside this text input triggers form submit action automatically -->
-        <form class="chat-input-area" id="chat-input-form" onsubmit="sendMessage(event)">
-            <div class="input-wrapper">
-                <input type="text" id="user-input" class="chat-input" placeholder="Ask about an order or product stock..." autocomplete="off" required>
+        <footer class="composer">
+
+            <div class="suggestions">
+
+                <button
+                    class="suggestion"
+                    onclick="quickMessage('Where is my order #1001?')"
+                >
+                    📦 Track order
+                </button>
+
+                <button
+                    class="suggestion"
+                    onclick="quickMessage('Are blue sneakers in stock?')"
+                >
+                    👟 Check stock
+                </button>
+
+                <button
+                    class="suggestion"
+                    onclick="quickMessage('How do I return an item?')"
+                >
+                    ↩️ Returns
+                </button>
+
+                <button
+                    class="suggestion"
+                    onclick="quickMessage('When will I get my refund?')"
+                >
+                    💰 Refund
+                </button>
+
             </div>
-            <button type="submit" id="send-button" class="send-btn" aria-label="Send message">
-                <!-- Send Paper Plane SVG icon -->
-                <svg viewBox="0 0 24 24">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
-            </button>
-        </form>
+
+
+            <form
+                class="input-row"
+                id="chatForm"
+            >
+
+                <input
+                    id="messageInput"
+                    autocomplete="off"
+                    placeholder="Ask Northstar anything..."
+                >
+
+                <button
+                    class="send"
+                    type="submit"
+                >
+                    ➤
+                </button>
+
+            </form>
+
+            <div class="composer-note">
+                Northstar Support · Instant self-service assistance
+            </div>
+
+        </footer>
+
     </main>
 
-    <script>
-        // DOM Elements
-        const chatWindow = document.getElementById('chat-window');
-        const userInput = document.getElementById('user-input');
-        const typingIndicator = document.getElementById('bot-typing');
+</div>
 
-        /**
-         * Appends a message bubble to the chat logs
-         * @param {string} text - Message text
-         * @param {boolean} isUser - True if sender is user, false for bot
-         */
-        function appendMessage(text, isUser) {
-            const bubble = document.createElement('div');
-            bubble.classList.add('message');
-            bubble.classList.add(isUser ? 'user' : 'bot');
-            bubble.textContent = text;
 
-            // Insert new message bubbles before the typing indicator
-            chatWindow.insertBefore(bubble, typingIndicator);
-            
-            // Auto scroll to the bottom of the container
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-            return bubble;
-        }
+<script>
 
-        /**
-         * Triggers typing animation and queries the backend API
-         * @param {string} text - The query string
-         */
-        async function fetchBotResponse(text) {
-            // Show typing indicator
-            typingIndicator.style.display = 'flex';
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+const messages = document.getElementById("messages");
 
-            try {
-                // Query Flask Backend - targeting the '/chat' endpoint exactly
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ message: text })
-                });
+const input = document.getElementById("messageInput");
 
-                if (!response.ok) {
-                    throw new Error('API server returned error status');
+const typing = document.getElementById("typing");
+
+const welcome = document.getElementById("welcome");
+
+const form = document.getElementById("chatForm");
+
+
+function quickMessage(text) {
+
+    input.value = text;
+
+    sendMessage();
+
+}
+
+
+function addMessage(
+    text,
+    sender = "assistant",
+    data = null
+) {
+
+    welcome.style.display = "none";
+
+    const wrapper = document.createElement("div");
+
+    wrapper.className =
+        `message ${sender}`;
+
+    const bubble = document.createElement("div");
+
+    bubble.className = "bubble";
+
+    bubble.innerHTML = text;
+
+    wrapper.appendChild(bubble);
+
+    messages.insertBefore(
+        wrapper,
+        typing
+    );
+
+    if (
+        sender === "assistant" &&
+        data
+    ) {
+
+        if (data.type === "order") {
+
+            const order = data.order;
+
+            const card = document.createElement("div");
+
+            card.className = "order-card";
+
+            card.innerHTML = `
+
+                <div class="card-title">
+                    📦 Order #${order.id}
+                </div>
+
+                <span class="badge">
+                    ${order.status}
+                </span>
+
+                <div class="card-row">
+                    <span>Product</span>
+                    <strong>${order.product}</strong>
+                </div>
+
+                <div class="card-row">
+                    <span>Estimated delivery</span>
+                    <strong>${order.eta || "Pending"}</strong>
+                </div>
+
+                <div class="card-row">
+                    <span>Carrier</span>
+                    <strong>${order.carrier || "Pending"}</strong>
+                </div>
+
+                ${
+                    order.tracking_number
+                    ?
+                    `
+                    <div class="card-row">
+                        <span>Tracking</span>
+                        <strong>${order.tracking_number}</strong>
+                    </div>
+                    `
+                    :
+                    ""
                 }
 
-                const data = await response.json();
-                
-                // Hide typing indicator
-                typingIndicator.style.display = 'none';
-                
-                // Append bot message bubble
-                appendMessage(data.response, false);
-
-                // Check metadata flags returned by the backend routing
-                if (data.show_ticket_form) {
-                    renderTicketForm(data.prefilled_order_id);
-                } else if (data.suggest_ticket) {
-                    renderTicketSuggestion(data.prefilled_order_id);
-                }
-
-            } catch (error) {
-                console.error('Error fetching response:', error);
-                
-                // Hide typing indicator
-                typingIndicator.style.display = 'none';
-                
-                // Append standard customer support failure message instead of silently failing
-                appendMessage('Something went wrong, please try again.', false);
-            }
-        }
-
-        /**
-         * Appends a small button suggesting opening a ticket if order wasn't found
-         * @param {string} orderId - Optional prefilled order ID
-         */
-        function renderTicketSuggestion(orderId) {
-            const btn = document.createElement('button');
-            btn.classList.add('escalate-btn');
-            btn.innerHTML = `
-                <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                Open Support Ticket
-            `;
-            btn.onclick = () => {
-                btn.remove();
-                renderTicketForm(orderId);
-            };
-            
-            chatWindow.insertBefore(btn, typingIndicator);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-
-        /**
-         * Appends an interactive ticket creation form inline in the chat
-         * @param {string} orderId - Prefilled order ID value
-         */
-        function renderTicketForm(orderId) {
-            // Check if form already exists to prevent duplicate forms
-            if (document.querySelector('.ticket-form-card')) return;
-
-            const formCard = document.createElement('div');
-            formCard.classList.add('ticket-form-card');
-            
-            formCard.innerHTML = `
-                <h3>
-                    <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1 1 .45 1 1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-                    Submit Support Ticket
-                </h3>
-                <form id="support-ticket-form" onsubmit="submitTicket(event, '${orderId || ''}')">
-                    <div class="form-group">
-                        <label for="ticket-name">Name</label>
-                        <input type="text" id="ticket-name" required placeholder="John Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="ticket-email">Email</label>
-                        <input type="email" id="ticket-email" required placeholder="john@example.com">
-                    </div>
-                    <div class="form-group">
-                        <label for="ticket-order">Order ID (Optional)</label>
-                        <input type="text" id="ticket-order" value="${orderId || ''}" placeholder="e.g. 1001">
-                    </div>
-                    <div class="form-group">
-                        <label for="ticket-desc">Describe your issue</label>
-                        <textarea id="ticket-desc" rows="3" required placeholder="Explain what went wrong..."></textarea>
-                    </div>
-                    <button type="submit" id="ticket-submit-btn" class="ticket-submit-btn">Submit Ticket</button>
-                </form>
             `;
 
-            chatWindow.insertBefore(formCard, typingIndicator);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
+            bubble.appendChild(card);
+
         }
 
-        /**
-         * Intercepts ticket form submission and submits it to /api/ticket endpoint
-         */
-        async function submitTicket(event, originalOrderId) {
-            event.preventDefault();
-            
-            const submitBtn = document.getElementById('ticket-submit-btn');
-            const nameInput = document.getElementById('ticket-name');
-            const emailInput = document.getElementById('ticket-email');
-            const orderInput = document.getElementById('ticket-order');
-            const descInput = document.getElementById('ticket-desc');
-            
-            // Disable button to prevent double clicks
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
 
-            const payload = {
-                customer_name: nameInput.value.trim(),
-                customer_email: emailInput.value.trim(),
-                order_id: orderInput.value.trim(),
-                issue_description: descInput.value.trim()
-            };
+        if (data.type === "product") {
 
-            try {
-                const response = await fetch('/api/ticket', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
+            const product = data.product;
 
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.response || 'Submission failed');
+            const card = document.createElement("div");
+
+            card.className = "product-card";
+
+            card.innerHTML = `
+
+                <div class="card-title">
+                    👟 ${product.product_name}
+                </div>
+
+                <span class="badge">
+                    ${product.stock_status.replace("_", " ")}
+                </span>
+
+                <div class="card-row">
+                    <span>Sizes</span>
+                    <strong>${product.sizes}</strong>
+                </div>
+
+                ${
+                    product.restock_date
+                    ?
+                    `
+                    <div class="card-row">
+                        <span>Restock</span>
+                        <strong>${product.restock_date}</strong>
+                    </div>
+                    `
+                    :
+                    ""
                 }
 
-                // Remove the form card
-                const formCard = document.querySelector('.ticket-form-card');
-                if (formCard) formCard.remove();
+            `;
 
-                // Append bot confirmation message
-                appendMessage(`Success! Support Ticket #${data.ticket_id} has been created. A human agent will review your issue and email you at ${payload.customer_email} as soon as possible.`, false);
+            bubble.appendChild(card);
 
-            } catch (error) {
-                console.error('Error submitting support ticket:', error);
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Ticket';
-                
-                // Add mini error note inside form
-                let errorNote = document.getElementById('ticket-error-note');
-                if (!errorNote) {
-                    errorNote = document.createElement('div');
-                    errorNote.id = 'ticket-error-note';
-                    errorNote.style.color = '#ef4444';
-                    errorNote.style.fontSize = '0.75rem';
-                    errorNote.style.marginTop = '5px';
-                    const form = document.getElementById('support-ticket-form');
-                    form.appendChild(errorNote);
-                }
-                errorNote.textContent = error.message || 'Error submitting ticket. Please check fields.';
+        }
+
+
+        const feedback = document.createElement("div");
+
+        feedback.className = "feedback";
+
+        feedback.innerHTML = `
+            Was this helpful?
+            <button onclick="sendFeedback('positive')">👍</button>
+            <button onclick="sendFeedback('negative')">👎</button>
+        `;
+
+        bubble.appendChild(feedback);
+
+    }
+
+    messages.scrollTop = messages.scrollHeight;
+}
+
+
+async function sendMessage() {
+
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    addMessage(
+        escapeHtml(text),
+        "user"
+    );
+
+    input.value = "";
+
+    typing.style.display = "block";
+
+    messages.scrollTop = messages.scrollHeight;
+
+    try {
+
+        const response = await fetch(
+            "/api/chat",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    message: text
+                })
             }
+        );
+
+        const data = await response.json();
+
+        typing.style.display = "none";
+
+        if (!response.ok) {
+
+            addMessage(
+                "Sorry, I couldn't process that request. Please try again."
+            );
+
+            return;
         }
 
-        /**
-         * Handles submitting a message from the input field
-         */
-        function sendMessage(event) {
-            event.preventDefault();
-            const text = userInput.value.trim();
-            if (!text) return;
+        addMessage(
+            data.message,
+            "assistant",
+            data
+        );
 
-            // Display user message in UI
-            appendMessage(text, true);
-            
-            // Clear input box
-            userInput.value = '';
+    }
 
-            // Fetch and display response
-            fetchBotResponse(text);
+    catch (error) {
+
+        typing.style.display = "none";
+
+        addMessage(
+            "I'm temporarily unable to connect. Please try again in a moment."
+        );
+
+    }
+
+}
+
+
+function sendFeedback(rating) {
+
+    fetch(
+        "/api/feedback",
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                rating: rating
+            })
         }
+    );
 
-        /**
-         * Fills input field and triggers send on clicking a suggestion chip
-         */
-        function applySuggestion(text) {
-            userInput.value = text;
-            userInput.focus();
-            
-            // Dispatch a submit event on the form to run message sender logic
-            const form = document.getElementById('chat-input-form');
-            form.dispatchEvent(new Event('submit'));
-        }
-    </script>
+}
+
+
+function escapeHtml(text) {
+
+    const div = document.createElement("div");
+
+    div.textContent = text;
+
+    return div.innerHTML;
+}
+
+
+form.addEventListener(
+    "submit",
+    function(event) {
+
+        event.preventDefault();
+
+        sendMessage();
+
+    }
+);
+
+
+input.focus();
+
+</script>
+
 </body>
+
 </html>
