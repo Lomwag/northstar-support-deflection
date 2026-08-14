@@ -1,112 +1,182 @@
 import os
 import sqlite3
 
-def initialize_database():
-    """
-    Initializes a local SQLite database named 'database.db' in the project directory.
-    Creates tables for 'orders', 'inventory', and 'tickets', and seeds them with mock data.
-    """
-    # Locate the database file path relative to this script
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    db_path = os.path.join(base_dir, "database.db")
-    
-    print(f"Connecting to database at: {db_path}")
-    
-    # Establish a connection to SQLite (creates the file if it doesn't exist)
-    conn = sqlite3.connect(db_path)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database.db")
+
+
+def init_database():
+
+    conn = sqlite3.connect(DB_PATH)
+
     cursor = conn.cursor()
-    
-    # ==========================================================================
-    # 1. CREATE SCHEMA TABLES
-    # ==========================================================================
-    
-    # Drop existing tables to allow clean re-runs of this script
-    print("Setting up database tables...")
-    cursor.execute("DROP TABLE IF EXISTS orders;")
-    cursor.execute("DROP TABLE IF EXISTS inventory;")
-    cursor.execute("DROP TABLE IF EXISTS tickets;")
-    
-    # Create the 'orders' table
+
+    # -----------------------------------------------------
+    # ORDERS
+    # -----------------------------------------------------
+
+    cursor.execute("""
+        DROP TABLE IF EXISTS orders
+    """)
+
     cursor.execute("""
         CREATE TABLE orders (
             id TEXT PRIMARY KEY,
             product TEXT NOT NULL,
             status TEXT NOT NULL,
             ship_date TEXT,
-            eta TEXT
-        );
+            eta TEXT,
+            tracking_number TEXT,
+            carrier TEXT
+        )
     """)
-    
-    # Create the 'inventory' table
+
+    # -----------------------------------------------------
+    # INVENTORY
+    # -----------------------------------------------------
+
+    cursor.execute("""
+        DROP TABLE IF EXISTS inventory
+    """)
+
     cursor.execute("""
         CREATE TABLE inventory (
             product_name TEXT PRIMARY KEY,
             sizes TEXT NOT NULL,
             stock_status TEXT NOT NULL,
             restock_date TEXT
-        );
+        )
     """)
-    
-    # Create the 'tickets' table for support escalations
-    # id: automatically incremented primary key for tickets
-    # order_id: optional linked order number
-    # customer_name: name of customer submitting support request
-    # customer_email: email address for agent correspondence
-    # issue_description: details of user query/problem
-    # status: current ticket status (default: 'open')
-    # created_at: SQL timestamp of ticket creation
+
+    # -----------------------------------------------------
+    # CONVERSATIONS
+    # -----------------------------------------------------
+
     cursor.execute("""
-        CREATE TABLE tickets (
+        CREATE TABLE conversations (
+            conversation_id TEXT PRIMARY KEY,
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    # -----------------------------------------------------
+    # MESSAGES
+    # -----------------------------------------------------
+
+    cursor.execute("""
+        CREATE TABLE messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            order_id TEXT,
-            customer_name TEXT NOT NULL,
-            customer_email TEXT NOT NULL,
-            issue_description TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'open',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
+            conversation_id TEXT NOT NULL,
+            role TEXT NOT NULL,
+            message TEXT NOT NULL,
+            intent TEXT,
+            created_at TEXT NOT NULL
+        )
     """)
-    
-    # ==========================================================================
-    # 2. SEED MOCK DATA
-    # ==========================================================================
-    
-    print("Seeding database tables...")
-    
-    # Seed data for orders
-    orders_seed = [
-        ("1001", "Blue Sneakers", "shipped", "2026-08-08", "2026-08-13"),
-        ("1002", "Red Boots", "processing", None, None),
-        ("1003", "White Run Shoes", "delivered", "2026-08-05", "2026-08-10")
-    ]
-    
-    cursor.executemany("""
-        INSERT INTO orders (id, product, status, ship_date, eta)
-        VALUES (?, ?, ?, ?, ?);
-    """, orders_seed)
-    
-    # Seed data for inventory (catalog keys must be lowercase)
-    inventory_seed = [
-        ("blue sneakers", "8, 9, 10", "in_stock", None),
-        ("red boots", "7, 8, 9, 10", "out_of_stock", "2026-09-01"),
-        ("white run shoes", "6, 7, 8, 9, 10, 11", "in_stock", None)
-    ]
-    
-    cursor.executemany("""
-        INSERT INTO inventory (product_name, sizes, stock_status, restock_date)
-        VALUES (?, ?, ?, ?);
-    """, inventory_seed)
-    
-    # Seed data for tickets
+
+    # -----------------------------------------------------
+    # FEEDBACK
+    # -----------------------------------------------------
+
     cursor.execute("""
-        INSERT INTO tickets (order_id, customer_name, customer_email, issue_description, status)
-        VALUES (?, ?, ?, ?, ?);
-    """, ("1002", "Jane Doe", "jane@example.com", "My order status has been processing for 4 days.", "open"))
-    
-    # Commit transaction changes and close connection
+        CREATE TABLE feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversation_id TEXT,
+            rating TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+
+    # -----------------------------------------------------
+    # SEED ORDERS
+    # -----------------------------------------------------
+
+    orders = [
+
+        (
+            "1001",
+            "Blue Sneakers",
+            "shipped",
+            "2026-08-08",
+            "2026-08-13",
+            "NS1001",
+            "Northstar Express"
+        ),
+
+        (
+            "1002",
+            "White Run Shoes",
+            "processing",
+            None,
+            "2026-08-16",
+            None,
+            None
+        ),
+
+        (
+            "1003",
+            "Black Hoodie",
+            "delivered",
+            "2026-08-05",
+            "2026-08-09",
+            "NS1003",
+            "Northstar Express"
+        )
+
+    ]
+
+    cursor.executemany(
+        """
+        INSERT INTO orders
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """,
+        orders
+    )
+
+    # -----------------------------------------------------
+    # SEED INVENTORY
+    # -----------------------------------------------------
+
+    inventory = [
+
+        (
+            "blue sneakers",
+            "8, 9, 10",
+            "in_stock",
+            None
+        ),
+
+        (
+            "white run shoes",
+            "7, 8, 9, 10, 11",
+            "in_stock",
+            None
+        ),
+
+        (
+            "black hoodie",
+            "S, M, L, XL",
+            "out_of_stock",
+            "2026-08-20"
+        )
+
+    ]
+
+    cursor.executemany(
+        """
+        INSERT INTO inventory
+        VALUES (?, ?, ?, ?)
+        """,
+        inventory
+    )
+
     conn.commit()
+
     conn.close()
-    print("Database successfully initialized and seeded with support tickets table!")
+
+    print("Northstar database initialized successfully.")
+
 
 if __name__ == "__main__":
-    initialize_database()
+    init_database()
